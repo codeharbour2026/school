@@ -1,0 +1,777 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AfterSchool OS</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+ margin:0;height:100vh;overflow:hidden;color:white;
+ font-family:Arial,sans-serif;
+ background:radial-gradient(ellipse at 15% 20%,#174b85,transparent 45%),
+ radial-gradient(ellipse at 85% 85%,#512b80,transparent 45%),#070d1b;
+}
+body.purple{background:radial-gradient(ellipse at 20% 20%,#642c9b,transparent 50%),#10081c}
+body.green{background:radial-gradient(ellipse at 20% 20%,#126b55,transparent 50%),#061711}
+
+.desktop{height:100vh;padding:25px;position:relative}
+.brand{font-weight:800;letter-spacing:3px}
+.brand span{color:#5a9cff}
+
+.clock{position:absolute;right:25px;top:22px;text-align:right;color:#b8c8e2;font-size:12px}
+.clock strong{display:block;font-size:25px;color:white}
+
+.icons{display:flex;flex-direction:column;gap:12px;width:85px;margin-top:40px}
+.icon{cursor:pointer;text-align:center;padding:12px 4px;border-radius:12px;font-size:12px}
+.icon:hover{background:#ffffff19}
+.icon span{display:block;font-size:30px;margin-bottom:7px}
+
+.dock{
+ position:fixed;bottom:15px;left:50%;transform:translateX(-50%);
+ display:flex;gap:8px;padding:9px 13px;align-items:center;
+ border:1px solid #ffffff25;border-radius:20px;
+ background:#101a2cdd;backdrop-filter:blur(25px);
+ box-shadow:0 15px 45px #0008;z-index:99999;
+}
+.dock button{
+ width:43px;height:43px;font-size:22px;border:0;
+ border-radius:11px;background:transparent;color:white;cursor:pointer;
+}
+.dock button:hover,.dock button.active{background:#ffffff25}
+.dock .start{background:#2879e9}
+
+.start-menu{
+ display:none;position:fixed;bottom:88px;left:50%;
+ transform:translateX(-50%);width:320px;padding:20px;
+ border:1px solid #ffffff25;border-radius:18px;
+ background:#101b30ed;backdrop-filter:blur(25px);z-index:99998;
+}
+.start-menu button{
+ display:block;width:100%;padding:12px;margin-top:6px;
+ color:white;background:#ffffff0d;border:0;border-radius:9px;
+ text-align:left;cursor:pointer;
+}
+.start-menu button:hover{background:#ffffff25}
+
+.window{
+ position:absolute;top:12%;left:20%;width:570px;height:440px;
+ max-width:calc(100vw - 20px);max-height:calc(100vh - 100px);
+ min-width:270px;min-height:180px;
+ display:none;flex-direction:column;overflow:hidden;resize:both;
+ background:#101b30ed;backdrop-filter:blur(28px);
+ border:1px solid #ffffff30;border-radius:16px;
+ box-shadow:0 25px 80px #0009;
+}
+.window.maximized{resize:none;top:10px!important;left:10px!important;width:calc(100vw - 20px)!important;height:calc(100vh - 100px)!important}
+
+.window-header{
+ height:47px;min-height:47px;display:flex;align-items:center;
+ justify-content:space-between;padding:0 12px 0 17px;
+ background:#ffffff0b;border-bottom:1px solid #ffffff18;
+ cursor:move;touch-action:none;user-select:none;
+}
+.window-title{font-size:13px;font-weight:bold}
+.controls{display:flex;gap:7px}
+.controls button{
+ width:27px;height:27px;border:0;border-radius:7px;
+ color:white;background:#ffffff15;cursor:pointer;
+}
+.controls button:hover{background:#ffffff35}
+.controls .close:hover{background:#e64e65}
+.window-content{padding:20px;flex:1;overflow:auto}
+
+.store-header{
+ display:flex;justify-content:space-between;align-items:center;
+ flex-wrap:wrap;gap:12px;margin-bottom:18px;
+}
+.store-header h2{margin:0;font-size:24px}
+.store-subtitle{color:#9db1d0;font-size:12px;margin-top:5px}
+.store-search{
+ width:100%;padding:13px;background:#071225;color:white;
+ border:1px solid #ffffff25;border-radius:10px;outline:none;
+}
+.categories{display:flex;gap:7px;flex-wrap:wrap;margin:14px 0}
+.category{
+ padding:8px 12px;background:#ffffff10;color:white;
+ border:1px solid #ffffff18;border-radius:20px;cursor:pointer;
+ font-size:12px;
+}
+.category.selected{background:#2879e9;border-color:#2879e9}
+
+.app-grid{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;
+}
+.app-card{
+ padding:15px;background:#ffffff0b;border:1px solid #ffffff17;
+ border-radius:13px;min-width:0;
+}
+.app-card:hover{background:#ffffff13}
+.app-top{display:flex;gap:12px;align-items:center}
+.app-emoji{font-size:32px}
+.app-name{font-weight:bold;font-size:14px}
+.app-category{font-size:11px;color:#91a9c9;margin-top:4px}
+.app-description{font-size:12px;color:#bdcbe0;line-height:1.5;margin:13px 0}
+.app-action{
+ width:100%;padding:9px;border:0;border-radius:8px;
+ background:#2879e9;color:white;cursor:pointer;font-weight:bold;
+}
+.app-action.installed{background:#ffffff17}
+.app-action:hover{filter:brightness(1.2)}
+.store-count{font-size:11px;color:#9bb2d3;margin:15px 0}
+
+textarea,input{
+ color:white;background:#071225;border:1px solid #ffffff25;
+ border-radius:9px;padding:12px;font:inherit;
+}
+textarea{width:100%;min-height:160px;resize:vertical}
+.calc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.calc-grid button,.settings-button{
+ padding:13px;border:0;border-radius:9px;
+ color:white;background:#ffffff16;cursor:pointer;
+}
+.calc-grid button:hover,.settings-button:hover{background:#2879e9}
+.calc-display{width:100%;font-size:25px;text-align:right;margin-bottom:12px}
+.settings-button{margin:5px}
+.app-content-button{padding:10px;background:#2879e9;color:white;border:0;border-radius:8px;cursor:pointer}
+
+@media(max-width:600px){
+ .window{left:10px;width:calc(100vw - 20px)}
+ .app-grid{grid-template-columns:1fr}
+ .dock{gap:2px}
+}
+</style>
+</head>
+
+<body>
+
+<div class="desktop">
+ <div class="brand">AFTERSCHOOL<span> OS</span></div>
+
+ <div class="clock">
+  <strong id="time">00:00</strong>
+  <span id="date"></span>
+ </div>
+
+ <div class="icons">
+  <div class="icon" onclick="openApp('notes')"><span>📝</span>Notes</div>
+  <div class="icon" onclick="openApp('calculator')"><span>🧮</span>Calculator</div>
+  <div class="icon" onclick="openApp('settings')"><span>⚙️</span>Settings</div>
+  <div class="icon" onclick="openApp('store')"><span>🛍️</span>App Store</div>
+ </div>
+</div>
+
+<div class="dock">
+ <button class="start" onclick="toggleStart()">✦</button>
+ <button onclick="openApp('store')" title="App Store">🛍️</button>
+ <button onclick="openApp('notes')" title="Notes">📝</button>
+ <button onclick="openApp('calculator')" title="Calculator">🧮</button>
+ <button onclick="openApp('settings')" title="Settings">⚙️</button>
+</div>
+
+<div class="start-menu" id="startMenu">
+ <h3>✦ AfterSchool OS</h3>
+ <p style="font-size:11px;color:#9db1d0">YOUR APPLICATIONS</p>
+ <div id="startApps"></div>
+</div>
+
+<!-- NOTES -->
+<div class="window" id="notes">
+ <div class="window-header">
+  <span class="window-title">📝 Notes</span>
+  <div class="controls">
+   <button onclick="minimizeApp('notes')">−</button>
+   <button onclick="maximizeApp('notes')">□</button>
+   <button class="close" onclick="closeApp('notes')">×</button>
+  </div>
+ </div>
+ <div class="window-content">
+  <h2>My Notes</h2>
+  <textarea id="noteText" placeholder="Write something..."></textarea>
+  <p style="font-size:11px;color:#9db1d0">Automatically saved on this device.</p>
+ </div>
+</div>
+
+<!-- CALCULATOR -->
+<div class="window" id="calculator">
+ <div class="window-header">
+  <span class="window-title">🧮 Calculator</span>
+  <div class="controls">
+   <button onclick="minimizeApp('calculator')">−</button>
+   <button onclick="maximizeApp('calculator')">□</button>
+   <button class="close" onclick="closeApp('calculator')">×</button>
+  </div>
+ </div>
+ <div class="window-content">
+  <input class="calc-display" id="display" value="0" readonly>
+  <div class="calc-grid">
+   <button onclick="clearCalc()">AC</button><button onclick="addCalc('/')">÷</button><button onclick="addCalc('*')">×</button><button onclick="addCalc('-')">−</button>
+   <button onclick="addCalc('7')">7</button><button onclick="addCalc('8')">8</button><button onclick="addCalc('9')">9</button><button onclick="addCalc('+')">+</button>
+   <button onclick="addCalc('4')">4</button><button onclick="addCalc('5')">5</button><button onclick="addCalc('6')">6</button><button onclick="calculate()">=</button>
+   <button onclick="addCalc('1')">1</button><button onclick="addCalc('2')">2</button><button onclick="addCalc('3')">3</button><button onclick="addCalc('0')">0</button>
+   <button onclick="addCalc('.')">.</button>
+  </div>
+ </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="window" id="settings">
+ <div class="window-header">
+  <span class="window-title">⚙️ Settings</span>
+  <div class="controls">
+   <button onclick="minimizeApp('settings')">−</button>
+   <button onclick="maximizeApp('settings')">□</button>
+   <button class="close" onclick="closeApp('settings')">×</button>
+  </div>
+ </div>
+ <div class="window-content">
+  <h2>Personalisation</h2>
+  <p>Choose your theme.</p>
+  <button class="settings-button" onclick="setTheme('blue')">🔵 Blue</button>
+  <button class="settings-button" onclick="setTheme('purple')">🟣 Purple</button>
+  <button class="settings-button" onclick="setTheme('green')">🟢 Green</button>
+   <hr style="border-color:#ffffff20;margin:22px 0">
+   <h2>☁️ AfterSchool Account</h2>
+   <p style="color:#9db1d0;font-size:12px">Sign in to sync your apps and settings across devices.</p>
+   <div id="accountSignedOut">
+    <input id="authEmail" type="email" placeholder="Email address" autocomplete="email" style="width:100%;margin:6px 0">
+    <input id="authPassword" type="password" placeholder="Password" autocomplete="current-password" style="width:100%;margin:6px 0">
+    <button class="settings-button" onclick="signIn()">Log in</button>
+    <button class="settings-button" onclick="signUp()">Create account</button>
+   </div>
+   <div id="accountSignedIn" style="display:none">
+    <p id="accountEmail"></p><p id="syncStatus">Connected</p>
+    <button class="settings-button" onclick="syncNow()">↻ Sync now</button>
+    <button class="settings-button" onclick="signOut()">Log out</button>
+   </div>
+   <p id="authMessage" role="status"></p>
+  </div>
+ </div>
+
+<!-- APP STORE -->
+<div class="window" id="store">
+ <div class="window-header">
+  <span class="window-title">🛍️ AfterSchool Store</span>
+  <div class="controls">
+   <button onclick="minimizeApp('store')">−</button>
+   <button onclick="maximizeApp('store')">□</button>
+   <button class="close" onclick="closeApp('store')">×</button>
+  </div>
+ </div>
+
+ <div class="window-content">
+  <div class="store-header">
+   <div>
+    <h2>App Store</h2>
+    <div class="store-subtitle">Discover your next favourite app.</div>
+   </div>
+   <span>✦</span>
+  </div>
+
+  <input class="store-search" id="storeSearch"
+   placeholder="🔍 Search applications..."
+   oninput="renderStore()">
+
+  <div class="categories" id="categories"></div>
+
+  <div class="store-count" id="storeCount"></div>
+  <div class="app-grid" id="appGrid"></div>
+ </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+
+// APP CATALOGUE
+
+const catalogue = [
+ {
+  id:'studyhub',name:'StudyHub',emoji:'📚',
+  category:'Learning',description:'Your central workspace for school subjects.',
+  content:'<h2>Welcome to StudyHub</h2><p>Organise your learning and keep your subjects together.</p><h3>My subjects</h3><p>Mathematics · English · Science · History</p>'
+ },
+ {
+  id:'flashcards',name:'Flashcards',emoji:'🧠',
+  category:'Learning',description:'Create flashcards to practise and remember information.',
+  content:'<h2>Flashcards</h2><p>Create your own question and answer cards.</p><input id="fcQuestion" placeholder="Question"><input id="fcAnswer" placeholder="Answer"><button class="app-content-button" onclick="addFlashcard()">Add card</button><div id="fcList"></div>'
+ },
+ {
+  id:'timetable',name:'Timetable',emoji:'📅',
+  category:'Productivity',description:'Keep track of your weekly school timetable.',
+  content:'<h2>My Timetable</h2><p>Monday — Maths, English, Science</p><p>Tuesday — History, English, PE</p><p>Wednesday — Science, Maths, Geography</p><p>Thursday — English, Art, Maths</p><p>Friday — PE, History, Science</p><p><i>Example timetable — customise it for your classes.</i></p>'
+ },
+ {
+  id:'homework',name:'Homework Manager',emoji:'📖',
+  category:'Productivity',description:'Keep your assignments and homework organised.',
+  content:'<h2>Homework Manager</h2><input id="hwInput" placeholder="Enter homework task"><button class="app-content-button" onclick="addHomework()">Add task</button><div id="hwList"></div>'
+ },
+ {
+  id:'codelab',name:'CodeLab',emoji:'💻',
+  category:'Development',description:'Experiment with HTML, CSS and JavaScript.',
+  content:'<h2>CodeLab</h2><p>Write some HTML and preview it.</p><textarea id="codeInput" placeholder="<h1>Hello world!</h1>"></textarea><button class="app-content-button" onclick="previewCode()">Preview</button><iframe id="codePreview" style="width:100%;height:140px;background:white;border:0;margin-top:12px"></iframe>'
+ },
+ {
+  id:'focus',name:'Focus Timer',emoji:'⏱️',
+  category:'Productivity',description:'Use focused study sessions with a timer.',
+  content:'<h2>Focus Timer</h2><h1 id="timerDisplay">25:00</h1><button class="app-content-button" onclick="startTimer()">Start</button><button class="app-content-button" onclick="resetTimer()">Reset</button>'
+ },
+ {
+  id:'quiz',name:'QuizMaster',emoji:'🎯',
+  category:'Learning',description:'Challenge yourself with your own quiz questions.',
+  content:'<h2>QuizMaster</h2><p>What is 12 × 8?</p><button class="app-content-button" onclick="this.nextElementSibling.textContent=\'Correct!\'">96</button><p></p>'
+ },
+ {
+  id:'whiteboard',name:'Whiteboard',emoji:'🎨',
+  category:'Creative',description:'A space to brainstorm and write ideas.',
+  content:'<h2>My Whiteboard</h2><textarea placeholder="Write your ideas here..."></textarea>'
+ }
+];
+
+const coreApps = [
+ {id:'store',name:'App Store',emoji:'🛍️'},
+ {id:'notes',name:'Notes',emoji:'📝'},
+ {id:'calculator',name:'Calculator',emoji:'🧮'},
+ {id:'settings',name:'Settings',emoji:'⚙️'}
+];
+
+let installed = JSON.parse(localStorage.getItem('as-installed') || '["studyhub"]');
+let selectedCategory = 'All';
+let zIndex = 100;
+let timerInterval = null;
+let timerSeconds = 1500;
+let flashcards = JSON.parse(localStorage.getItem('as-flashcards') || '[]');
+let homework = JSON.parse(localStorage.getItem('as-homework') || '[]');
+
+function saveInstalled(){
+ localStorage.setItem('as-installed',JSON.stringify(installed));
+}
+
+function isInstalled(id){
+ return installed.includes(id) || coreApps.some(a=>a.id===id);
+}
+
+
+// STORE CATEGORIES
+
+const categoryNames=['All','Learning','Productivity','Development','Creative'];
+
+function renderCategories(){
+ document.getElementById('categories').innerHTML=categoryNames.map(cat=>
+  `<button class="category ${selectedCategory===cat?'selected':''}"
+  onclick="selectCategory('${cat}')">${cat}</button>`
+ ).join('');
+}
+
+function selectCategory(cat){
+ selectedCategory=cat;
+ renderCategories();
+ renderStore();
+}
+
+
+// STORE APPLICATION CARDS
+
+function renderStore(){
+ const query=document.getElementById('storeSearch').value.toLowerCase();
+
+ const apps=catalogue.filter(app=>
+  (selectedCategory==='All'||app.category===selectedCategory)&&
+  (app.name.toLowerCase().includes(query)||
+   app.description.toLowerCase().includes(query))
+ );
+
+ document.getElementById('storeCount').textContent=
+  `${installed.length} applications installed · ${apps.length} applications shown`;
+
+ document.getElementById('appGrid').innerHTML=apps.map(app=>`
+  <div class="app-card">
+   <div class="app-top">
+    <div class="app-emoji">${app.emoji}</div>
+    <div>
+     <div class="app-name">${app.name}</div>
+     <div class="app-category">${app.category} · Free</div>
+    </div>
+   </div>
+   <div class="app-description">${app.description}</div>
+   <button class="app-action ${isInstalled(app.id)?'installed':''}"
+    onclick="appAction('${app.id}')">
+    ${isInstalled(app.id)?'✓ Installed':'＋ Get'}
+   </button>
+  </div>
+ `).join('') || '<p>No applications found.</p>';
+}
+
+function appAction(id){
+ if(isInstalled(id)){
+  openApp(id);
+ }else{
+  installed.push(id);
+  saveInstalled();
+  renderStore();
+  renderStart();
+  updateDock();
+ }
+}
+
+
+// APP WINDOW SYSTEM
+
+function openApp(id){
+ let win=document.getElementById(id);
+
+ if(!win){
+  const app=catalogue.find(a=>a.id===id);
+  if(!app||!isInstalled(id))return;
+
+  win=document.createElement('div');
+  win.className='window';
+  win.id=id;
+
+  win.innerHTML=`
+   <div class="window-header">
+    <span class="window-title">${app.emoji} ${app.name}</span>
+    <div class="controls">
+     <button onclick="minimizeApp('${id}')">−</button>
+     <button onclick="maximizeApp('${id}')">□</button>
+     <button class="close" onclick="closeApp('${id}')">×</button>
+    </div>
+   </div>
+   <div class="window-content">${app.content}</div>
+  `;
+
+  document.body.appendChild(win);
+  makeDraggable(win);
+ }
+
+ win.style.display='flex';
+ win.style.zIndex=++zIndex;
+ win.classList.remove('maximized');
+
+ document.getElementById('startMenu').style.display='none';
+
+ if(id==='store'){
+  renderCategories();
+  renderStore();
+ }
+
+ updateDock();
+}
+
+function closeApp(id){
+ const win=document.getElementById(id);
+ if(win){
+  win.style.display='none';
+  win.classList.remove('maximized');
+ }
+ updateDock();
+}
+
+function minimizeApp(id){
+ document.getElementById(id).style.display='none';
+ updateDock();
+}
+
+function maximizeApp(id){
+ const win=document.getElementById(id);
+ win.classList.toggle('maximized');
+ win.style.zIndex=++zIndex;
+}
+
+function makeDraggable(win){
+ const header=win.querySelector('.window-header');
+ let dragging=false,offsetX=0,offsetY=0;
+
+ win.addEventListener('pointerdown',()=>win.style.zIndex=++zIndex);
+
+ header.addEventListener('pointerdown',e=>{
+  if(e.target.closest('button')||win.classList.contains('maximized'))return;
+
+  dragging=true;
+  const rect=win.getBoundingClientRect();
+  offsetX=e.clientX-rect.left;
+  offsetY=e.clientY-rect.top;
+  header.setPointerCapture(e.pointerId);
+ });
+
+ header.addEventListener('pointermove',e=>{
+  if(!dragging)return;
+  win.style.left=(e.clientX-offsetX)+'px';
+  win.style.top=(e.clientY-offsetY)+'px';
+ });
+
+ header.addEventListener('pointerup',()=>dragging=false);
+ header.addEventListener('pointercancel',()=>dragging=false);
+}
+
+document.querySelectorAll('.window').forEach(makeDraggable);
+
+
+// START MENU
+
+function toggleStart(){
+ const menu=document.getElementById('startMenu');
+ menu.style.display=menu.style.display==='block'?'none':'block';
+ renderStart();
+}
+
+function renderStart(){
+ const apps=[
+  ...coreApps,
+  ...catalogue.filter(a=>installed.includes(a.id))
+ ];
+
+ document.getElementById('startApps').innerHTML=apps.map(a=>
+  `<button onclick="openApp('${a.id}')">${a.emoji} ${a.name}</button>`
+ ).join('');
+}
+
+
+// DOCK
+
+function updateDock(){
+ document.querySelectorAll('.dock button:not(.start)').forEach(button=>{
+  const id=button.dataset.app;
+  if(!id)return;
+  const win=document.getElementById(id);
+  button.classList.toggle('active',win&&win.style.display==='flex');
+ });
+}
+
+
+// CLOCK
+
+function updateClock(){
+ const now=new Date();
+ document.getElementById('time').textContent=
+  now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+ document.getElementById('date').textContent=
+  now.toLocaleDateString([],{weekday:'long',day:'numeric',month:'long'});
+}
+updateClock();
+setInterval(updateClock,1000);
+
+
+// NOTES
+
+const noteText=document.getElementById('noteText');
+noteText.value=localStorage.getItem('as-notes')||'';
+noteText.addEventListener('input',()=>{
+ localStorage.setItem('as-notes',noteText.value);
+});
+
+
+// CALCULATOR
+
+let expression='';
+function addCalc(v){
+ expression+=v;
+ document.getElementById('display').value=expression;
+}
+function clearCalc(){
+ expression='';
+ document.getElementById('display').value='0';
+}
+function calculate(){
+ try{
+  if(!/^[0-9+\-*/.() ]+$/.test(expression))throw Error();
+  const result=Function('"use strict";return ('+expression+')')();
+  if(!Number.isFinite(result))throw Error();
+  expression=String(Number(result.toFixed(8)));
+  document.getElementById('display').value=expression;
+ }catch{
+  expression='';
+  document.getElementById('display').value='Error';
+ }
+}
+
+
+// THEMES
+
+function setTheme(theme){
+ document.body.classList.remove('purple','green');
+ if(theme!=='blue')document.body.classList.add(theme);
+ localStorage.setItem('as-theme',theme);
+}
+setTheme(localStorage.getItem('as-theme')||'blue');
+
+
+// FLASHCARDS
+
+function addFlashcard(){
+ const q=document.getElementById('fcQuestion').value.trim();
+ const a=document.getElementById('fcAnswer').value.trim();
+ if(!q||!a)return;
+
+ flashcards.push({q,a});
+ localStorage.setItem('as-flashcards',JSON.stringify(flashcards));
+ document.getElementById('fcQuestion').value='';
+ document.getElementById('fcAnswer').value='';
+ document.getElementById('fcList').innerHTML=
+  `<p>${flashcards.length} cards created.</p>`;
+}
+
+
+// HOMEWORK
+
+function addHomework(){
+ const input=document.getElementById('hwInput');
+ if(!input.value.trim())return;
+ homework.push(input.value.trim());
+ localStorage.setItem('as-homework',JSON.stringify(homework));
+ document.getElementById('hwList').innerHTML=
+  homework.map((task,i)=>`<p>☐ ${task}</p>`).join('');
+ input.value='';
+}
+
+
+// CODELAB
+
+function previewCode(){
+ const code=document.getElementById('codeInput').value;
+ document.getElementById('codePreview').srcdoc=code;
+}
+
+
+// FOCUS TIMER
+
+function showTimer(){
+ const m=Math.floor(timerSeconds/60);
+ const s=timerSeconds%60;
+ const el=document.getElementById('timerDisplay');
+ if(el)el.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function startTimer(){
+ if(timerInterval)return;
+ timerInterval=setInterval(()=>{
+  if(timerSeconds>0)timerSeconds--;
+  else{
+   clearInterval(timerInterval);
+   timerInterval=null;
+   alert('Focus session complete!');
+  }
+  showTimer();
+ },1000);
+}
+
+function resetTimer(){
+ clearInterval(timerInterval);
+ timerInterval=null;
+ timerSeconds=1500;
+ showTimer();
+}
+
+
+// SUPABASE CLOUD ACCOUNTS
+// The publishable key is safe for browser use. Protect data with RLS in Supabase.
+const SUPABASE_URL = 'https://ngjtvrkucshmucltdowj.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_IX23boiszm3GZgFqx9bfgw_hQUWN_mR';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+let currentUser = null;
+let applyingCloudData = false;
+let syncTimeout = null;
+const APP_STORAGE_KEYS = ['as-installed','as-notes','as-theme','as-flashcards','as-homework'];
+
+function accountMessage(message, isError=false){
+ const el=document.getElementById('authMessage');
+ if(el){el.textContent=message;el.style.color=isError?'#ff9aab':'#9db1d0';}
+}
+function updateAccountUI(){
+ const signedIn=!!currentUser;
+ document.getElementById('accountSignedOut').style.display=signedIn?'none':'block';
+ document.getElementById('accountSignedIn').style.display=signedIn?'block':'none';
+ document.getElementById('accountEmail').textContent=currentUser?.email||'';
+}
+function collectAppData(){
+ const data={};
+ APP_STORAGE_KEYS.forEach(key=>{const value=localStorage.getItem(key);if(value!==null)data[key]=value;});
+ return data;
+}
+function applyCloudData(data){
+ if(!data)return;
+ applyingCloudData=true;
+ Object.entries(data).forEach(([key,value])=>{
+  if(APP_STORAGE_KEYS.includes(key)&&typeof value==='string')localStorage.setItem(key,value);
+ });
+ applyingCloudData=false;
+ installed=JSON.parse(localStorage.getItem('as-installed')||'["studyhub"]');
+ flashcards=JSON.parse(localStorage.getItem('as-flashcards')||'[]');
+ homework=JSON.parse(localStorage.getItem('as-homework')||'[]');
+ setTheme(localStorage.getItem('as-theme')||'blue');
+ noteText.value=localStorage.getItem('as-notes')||'';
+ renderStart();renderStore();
+}
+async function syncNow(){
+ if(!currentUser){accountMessage('Log in first.',true);return;}
+ const status=document.getElementById('syncStatus');status.textContent='Syncing…';
+ const {error}=await supabaseClient.from('user_data').upsert({user_id:currentUser.id,data:collectAppData(),updated_at:new Date().toISOString()},{onConflict:'user_id'});
+ if(error){status.textContent='Sync failed';accountMessage(error.message,true);return;}
+ status.textContent='All changes synced ☁️';accountMessage('Your AfterSchool OS data is up to date.');
+}
+function scheduleCloudSync(){
+ if(!currentUser||applyingCloudData)return;
+ clearTimeout(syncTimeout);syncTimeout=setTimeout(syncNow,900);
+}
+async function loadCloudData(){
+ const status=document.getElementById('syncStatus');status.textContent='Loading your cloud data…';
+ const {data,error}=await supabaseClient.from('user_data').select('data').eq('user_id',currentUser.id).maybeSingle();
+ if(error){status.textContent='Could not load cloud data';accountMessage(error.message,true);return;}
+ if(data?.data){applyCloudData(data.data);status.textContent='Cloud data loaded';}
+ else{status.textContent='Setting up your cloud storage…';await syncNow();}
+}
+async function signUp(){
+ const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;
+ if(!email||!password){accountMessage('Enter an email and password.',true);return;}
+ if(password.length<6){accountMessage('Use a password with at least 6 characters.',true);return;}
+ accountMessage('Creating your account…');
+ const {data,error}=await supabaseClient.auth.signUp({email,password});
+ if(error){accountMessage(error.message,true);return;}
+ if(data.session){currentUser=data.user;updateAccountUI();await loadCloudData();accountMessage('Account created and connected!');}
+ else accountMessage('Check your email to confirm your account, then log in.');
+}
+async function signIn(){
+ const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;
+ if(!email||!password){accountMessage('Enter your email and password.',true);return;}
+ accountMessage('Logging in…');
+ const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
+ if(error){accountMessage(error.message,true);return;}
+ currentUser=data.user;updateAccountUI();await loadCloudData();accountMessage('Logged in successfully!');
+}
+async function signOut(){
+ const {error}=await supabaseClient.auth.signOut();
+ if(error){accountMessage(error.message,true);return;}
+ currentUser=null;updateAccountUI();accountMessage('Logged out. Your data remains saved on this device.');
+}
+supabaseClient.auth.onAuthStateChange((event,session)=>{
+ if(event==='SIGNED_OUT'){currentUser=null;updateAccountUI();}
+});
+(async function initialiseCloudAccount(){
+ const {data,error}=await supabaseClient.auth.getSession();
+ if(error){accountMessage(error.message,true);return;}
+ currentUser=data.session?.user||null;updateAccountUI();
+ if(currentUser)await loadCloudData();
+})();
+const originalSetItem=Storage.prototype.setItem;
+Storage.prototype.setItem=function(key,value){
+ originalSetItem.call(this,key,value);
+ if(APP_STORAGE_KEYS.includes(key))scheduleCloudSync();
+};
+
+// INITIALISE
+
+document.querySelectorAll('.dock button:not(.start)').forEach(button=>{
+ const title=button.title;
+ const app=coreApps.find(a=>a.name===title);
+ if(app)button.dataset.app=app.id;
+});
+
+renderStart();
+renderCategories();
+renderStore();
+</script>
+
+</body>
+</html>
