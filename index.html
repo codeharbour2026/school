@@ -1,0 +1,478 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AfterSchool OS</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    color: white;
+    overflow: hidden;
+    background:
+        radial-gradient(ellipse at 20% 20%, #163b70 0%, transparent 45%),
+        radial-gradient(ellipse at 85% 80%, #401c70 0%, transparent 45%),
+        #080d1b;
+    height: 100vh;
+}
+
+.desktop {
+    height: 100vh;
+    padding: 25px;
+}
+
+.brand {
+    font-size: 21px;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+.brand span {
+    color: #55baff;
+}
+
+.desktop-icons {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    margin-top: 45px;
+    width: 85px;
+}
+
+.app-icon {
+    width: 75px;
+    padding: 12px 5px;
+    text-align: center;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: 0.2s;
+    font-size: 13px;
+}
+
+.app-icon:hover {
+    background: #ffffff20;
+    transform: translateY(-3px);
+}
+
+.app-icon .emoji {
+    font-size: 32px;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.taskbar {
+    position: fixed;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 65px;
+    padding: 8px 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #101a2cbb;
+    backdrop-filter: blur(25px);
+    border: 1px solid #ffffff20;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px #0008;
+}
+
+.taskbar button {
+    border: none;
+    background: transparent;
+    color: white;
+    font-size: 25px;
+    cursor: pointer;
+    border-radius: 10px;
+    padding: 8px;
+}
+
+.taskbar button:hover {
+    background: #ffffff20;
+}
+
+.clock {
+    position: fixed;
+    right: 25px;
+    top: 25px;
+    text-align: right;
+    font-size: 14px;
+    color: #c8d8ed;
+}
+
+.clock strong {
+    display: block;
+    font-size: 25px;
+    color: white;
+}
+
+.window {
+    position: absolute;
+    top: 18%;
+    left: 30%;
+    width: 430px;
+    max-width: calc(100vw - 30px);
+    background: #101b30ee;
+    backdrop-filter: blur(30px);
+    border: 1px solid #ffffff30;
+    border-radius: 16px;
+    box-shadow: 0 25px 80px #0009;
+    overflow: hidden;
+    display: none;
+}
+
+.window-header {
+    height: 48px;
+    background: #ffffff0b;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+    cursor: move;
+    border-bottom: 1px solid #ffffff15;
+}
+
+.window-header button {
+    border: none;
+    background: #ff5570;
+    color: white;
+    border-radius: 7px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.window-content {
+    padding: 20px;
+}
+
+textarea {
+    width: 100%;
+    height: 200px;
+    resize: vertical;
+    background: #071225;
+    color: white;
+    border: 1px solid #ffffff25;
+    border-radius: 10px;
+    padding: 12px;
+    font: inherit;
+    outline: none;
+}
+
+.calc-display {
+    width: 100%;
+    padding: 18px;
+    background: #071225;
+    color: white;
+    border: 1px solid #ffffff20;
+    border-radius: 10px;
+    text-align: right;
+    font-size: 28px;
+    margin-bottom: 12px;
+}
+
+.calc-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.calc-grid button {
+    padding: 15px;
+    background: #ffffff12;
+    color: white;
+    border: 1px solid #ffffff15;
+    border-radius: 10px;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.calc-grid button:hover {
+    background: #397eea;
+}
+
+.start-menu {
+    display: none;
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 320px;
+    padding: 20px;
+    background: #101b30ed;
+    backdrop-filter: blur(25px);
+    border: 1px solid #ffffff25;
+    border-radius: 18px;
+    box-shadow: 0 15px 50px #0009;
+}
+
+.start-menu h3 {
+    margin-top: 0;
+}
+
+.start-menu button {
+    width: 100%;
+    padding: 13px;
+    background: #ffffff0d;
+    color: white;
+    border: none;
+    border-radius: 9px;
+    text-align: left;
+    margin: 4px 0;
+    cursor: pointer;
+}
+
+.start-menu button:hover {
+    background: #397eea55;
+}
+
+@media(max-width: 600px) {
+    .window {
+        left: 15px;
+        top: 15%;
+        width: calc(100vw - 30px);
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="desktop">
+
+    <div class="brand">AFTERSCHOOL<span> OS</span></div>
+
+    <div class="desktop-icons">
+        <div class="app-icon" onclick="openApp('notes')">
+            <span class="emoji">📝</span>
+            Notes
+        </div>
+
+        <div class="app-icon" onclick="openApp('calculator')">
+            <span class="emoji">🧮</span>
+            Calculator
+        </div>
+
+        <div class="app-icon" onclick="openApp('about')">
+            <span class="emoji">💻</span>
+            System
+        </div>
+    </div>
+
+    <div class="clock">
+        <strong id="time">00:00</strong>
+        <span id="date">Loading...</span>
+    </div>
+
+</div>
+
+<div class="taskbar">
+    <button onclick="toggleStart()" title="Start">✦</button>
+    <button onclick="openApp('notes')" title="Notes">📝</button>
+    <button onclick="openApp('calculator')" title="Calculator">🧮</button>
+    <button onclick="openApp('about')" title="System">💻</button>
+</div>
+
+<div class="start-menu" id="startMenu">
+    <h3>✦ AfterSchool OS</h3>
+    <p style="color:#91a6c5;font-size:12px">YOUR APPLICATIONS</p>
+    <button onclick="openApp('notes')">📝 &nbsp; Notes</button>
+    <button onclick="openApp('calculator')">🧮 &nbsp; Calculator</button>
+    <button onclick="openApp('about')">💻 &nbsp; System Information</button>
+</div>
+
+<div class="window" id="notes">
+    <div class="window-header">
+        <span>📝 Notes</span>
+        <button onclick="closeApp('notes')">✕</button>
+    </div>
+    <div class="window-content">
+        <h3>Your Notes</h3>
+        <textarea id="noteText" placeholder="Start typing..."></textarea>
+        <p style="color:#8ba4c7;font-size:12px">Automatically saved on this device.</p>
+    </div>
+</div>
+
+<div class="window" id="calculator">
+    <div class="window-header">
+        <span>🧮 Calculator</span>
+        <button onclick="closeApp('calculator')">✕</button>
+    </div>
+    <div class="window-content">
+        <input class="calc-display" id="display" value="0" readonly>
+
+        <div class="calc-grid">
+            <button onclick="clearCalc()">AC</button>
+            <button onclick="addCalc('/')">÷</button>
+            <button onclick="addCalc('*')">×</button>
+            <button onclick="addCalc('-')">−</button>
+
+            <button onclick="addCalc('7')">7</button>
+            <button onclick="addCalc('8')">8</button>
+            <button onclick="addCalc('9')">9</button>
+            <button onclick="addCalc('+')">+</button>
+
+            <button onclick="addCalc('4')">4</button>
+            <button onclick="addCalc('5')">5</button>
+            <button onclick="addCalc('6')">6</button>
+            <button onclick="calculate()">=</button>
+
+            <button onclick="addCalc('1')">1</button>
+            <button onclick="addCalc('2')">2</button>
+            <button onclick="addCalc('3')">3</button>
+            <button onclick="addCalc('0')">0</button>
+
+            <button onclick="addCalc('.')">.</button>
+        </div>
+    </div>
+</div>
+
+<div class="window" id="about">
+    <div class="window-header">
+        <span>💻 System Information</span>
+        <button onclick="closeApp('about')">✕</button>
+    </div>
+    <div class="window-content">
+        <h2>AfterSchool OS</h2>
+        <p>Version 0.1.0</p>
+        <p>System status: <span style="color:#55e6a5">● Online</span></p>
+        <p>Environment: Web Desktop</p>
+        <p>Architecture: JavaScript</p>
+        <hr style="border-color:#ffffff20">
+        <p>Welcome to your new digital workspace.</p>
+    </div>
+</div>
+
+<script>
+// CLOCK
+function updateClock() {
+    const now = new Date();
+
+    document.getElementById('time').textContent =
+        now.toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+    document.getElementById('date').textContent =
+        now.toLocaleDateString([], {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long'
+        });
+}
+
+updateClock();
+setInterval(updateClock, 1000);
+
+
+// APPLICATION WINDOWS
+let topZ = 10;
+
+function openApp(id) {
+    const app = document.getElementById(id);
+    app.style.display = 'block';
+    app.style.zIndex = ++topZ;
+    document.getElementById('startMenu').style.display = 'none';
+}
+
+function closeApp(id) {
+    document.getElementById(id).style.display = 'none';
+}
+
+
+// START MENU
+function toggleStart() {
+    const menu = document.getElementById('startMenu');
+
+    menu.style.display =
+        menu.style.display === 'block' ? 'none' : 'block';
+}
+
+
+// NOTES
+const noteText = document.getElementById('noteText');
+
+noteText.value = localStorage.getItem('afterschool-notes') || '';
+
+noteText.addEventListener('input', () => {
+    localStorage.setItem('afterschool-notes', noteText.value);
+});
+
+
+// CALCULATOR
+let expression = '';
+
+function addCalc(value) {
+    expression += value;
+    document.getElementById('display').value = expression;
+}
+
+function clearCalc() {
+    expression = '';
+    document.getElementById('display').value = '0';
+}
+
+function calculate() {
+    try {
+        if (!/^[0-9+\-*/.() ]+$/.test(expression)) {
+            throw new Error('Invalid');
+        }
+
+        const result = Function('"use strict"; return (' + expression + ')')();
+
+        if (!Number.isFinite(result)) throw new Error('Invalid');
+
+        expression = String(Number(result.toFixed(8)));
+        document.getElementById('display').value = expression;
+
+    } catch {
+        expression = '';
+        document.getElementById('display').value = 'Error';
+    }
+}
+
+
+// DRAGGABLE WINDOWS
+document.querySelectorAll('.window').forEach(win => {
+    const header = win.querySelector('.window-header');
+
+    let dragging = false;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    header.addEventListener('pointerdown', e => {
+        if (e.target.tagName === 'BUTTON') return;
+
+        dragging = true;
+        offsetX = e.clientX - win.offsetLeft;
+        offsetY = e.clientY - win.offsetTop;
+        win.style.zIndex = ++topZ;
+        header.setPointerCapture(e.pointerId);
+    });
+
+    header.addEventListener('pointermove', e => {
+        if (!dragging) return;
+
+        win.style.left = (e.clientX - offsetX) + 'px';
+        win.style.top = (e.clientY - offsetY) + 'px';
+    });
+
+    header.addEventListener('pointerup', () => {
+        dragging = false;
+    });
+
+    header.addEventListener('pointercancel', () => {
+        dragging = false;
+    });
+});
+</script>
+
+</body>
+</html>
